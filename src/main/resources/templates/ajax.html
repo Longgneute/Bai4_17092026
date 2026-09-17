@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Product Management</title>
+
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+	rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<style>
+body {
+	background: #f5f7fb;
+	font-family: Arial, sans-serif;
+	color: #263238
+}
+
+.wrap {
+	width: 94%;
+	max-width: 1500px;
+	margin: 35px auto
+}
+
+.top {
+	background: linear-gradient(135deg, #182848, #4b6cb7);
+	color: white;
+	padding: 28px 32px;
+	border-radius: 18px;
+	margin-bottom: 22px;
+	box-shadow: 0 8px 25px #0001
+}
+
+.top h1 {
+	margin: 0;
+	font-size: 30px
+}
+
+.top p {
+	margin: 7px 0 0;
+	opacity: .85
+}
+
+.box {
+	background: white;
+	border-radius: 16px;
+	padding: 22px;
+	margin-bottom: 22px;
+	box-shadow: 0 5px 20px #0000000d
+}
+
+.title {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 18px
+}
+
+.title h3 {
+	margin: 0;
+	color: #243b6b;
+	font-size: 22px
+}
+
+.title small {
+	color: #888
+}
+
+.btn-main {
+	background: #3867d6;
+	color: white;
+	border: 0;
+	border-radius: 9px;
+	padding: 9px 16px
+}
+
+.btn-main:hover {
+	background: #274baf;
+	color: white
+}
+
+.table {
+	margin: 0
+}
+
+.table thead th {
+	background: #243b6b;
+	color: white;
+	border: 0;
+	padding: 12px
+}
+
+.table td {
+	vertical-align: middle;
+	padding: 11px
+}
+
+.table tbody tr:hover {
+	background: #f7f9ff
+}
+
+.img {
+	width: 58px;
+	height: 58px;
+	object-fit: cover;
+	border-radius: 10px;
+	border: 1px solid #ddd
+}
+
+.preview {
+	width: 100px;
+	height: 100px;
+	object-fit: cover;
+	border-radius: 10px;
+	margin-top: 8px;
+	display: none
+}
+
+.badge-sale {
+	background: #20a464;
+}
+
+.search {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 15px
+}
+
+.search input {
+	border-radius: 9px
+}
+
+.pagination {
+	margin-top: 18px
+}
+
+.empty {
+	text-align: center;
+	color: #999;
+	padding: 25px
+}
+
+.modal-content {
+	border: 0;
+	border-radius: 15px
+}
+
+.modal-header {
+	background: #243b6b;
+	color: white;
+	border-radius: 15px 15px 0 0
+}
+</style>
+</head>
+
+<body>
+
+	<div class="wrap">
+
+		<!-- HEADER -->
+		<div class="top">
+			<h1>Product Management</h1>
+			<p>CRUD Product & Category · RESTful API + AJAX</p>
+		</div>
+
+		<!-- CATEGORY -->
+		<div class="box">
+
+			<div class="title">
+				<div>
+					<h3>Category</h3>
+					<small>Quản lý danh mục sản phẩm</small>
+				</div>
+
+				<button class="btn-main" onclick="addCategory()">+ Thêm</button>
+			</div>
+
+			<div id="catMsg"></div>
+
+			<div class="table-responsive">
+				<table class="table table-bordered">
+					<thead>
+						<tr>
+							<th width="70">ID</th>
+							<th width="100">Icon</th>
+							<th>Tên Category</th>
+							<th width="160">Thao tác</th>
+						</tr>
+					</thead>
+
+					<tbody id="catBody"></tbody>
+				</table>
+			</div>
+
+		</div>
+
+
+		<!-- PRODUCT -->
+		<div class="box">
+
+			<div class="title">
+				<div>
+					<h3>Product</h3>
+					<small>Quản lý sản phẩm</small>
+				</div>
+
+				<button class="btn-main" onclick="addProduct()">+ Thêm sản
+					phẩm</button>
+			</div>
+
+			<div class="search">
+				<input id="keyword" class="form-control"
+					placeholder="🔍 Nhập tên sản phẩm...">
+
+				<button class="btn-main" onclick="loadProduct(0)">Tìm</button>
+			</div>
+
+			<div id="proMsg"></div>
+
+			<div class="table-responsive">
+				<table class="table table-bordered">
+					<thead>
+						<tr>
+							<th>ID</th>
+							<th>Ảnh</th>
+							<th>Tên</th>
+							<th>Giá</th>
+							<th>Giảm</th>
+							<th>SL</th>
+							<th>Category</th>
+							<th>Trạng thái</th>
+							<th>Thao tác</th>
+						</tr>
+					</thead>
+
+					<tbody id="proBody"></tbody>
+				</table>
+			</div>
+
+			<div id="paging" class="d-flex justify-content-center"></div>
+
+		</div>
+
+	</div>
+
+
+	<!-- CATEGORY MODAL -->
+	<div class="modal fade" id="catModal">
+		<div class="modal-dialog">
+			<div class="modal-content">
+
+				<div class="modal-header">
+					<h5 id="catTitle">Thêm Category</h5>
+					<button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+				</div>
+
+				<div class="modal-body">
+
+					<input type="hidden" id="catId"> <label class="form-label">Tên
+						Category</label> <input id="catName" class="form-control mb-3"
+						placeholder="Nhập tên category"> <label class="form-label">Icon</label>
+					<input type="file" id="catIcon" class="form-control"
+						accept="image/*" onchange="preview(this,'catPreview')"> <img
+						id="catPreview" class="preview">
+
+				</div>
+
+				<div class="modal-footer">
+					<button class="btn btn-secondary" data-bs-dismiss="modal">
+						Đóng</button>
+
+					<button class="btn btn-primary" onclick="saveCategory()">
+						Lưu</button>
+				</div>
+
+			</div>
+		</div>
+	</div>
+
+
+	<!-- PRODUCT MODAL -->
+	<div class="modal fade" id="proModal">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+
+				<div class="modal-header">
+					<h5 id="proTitle">Thêm sản phẩm</h5>
+					<button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+				</div>
+
+				<div class="modal-body">
+
+					<input type="hidden" id="proId">
+
+					<div class="row g-3">
+
+						<div class="col-md-6">
+							<label class="form-label">Tên sản phẩm</label> <input
+								id="proName" class="form-control" placeholder="Tên sản phẩm">
+						</div>
+
+						<div class="col-md-6">
+							<label class="form-label">Category</label> <select id="proCat"
+								class="form-select"></select>
+						</div>
+
+						<div class="col-md-4">
+							<label class="form-label">Giá</label> <input id="proPrice"
+								type="number" class="form-control" min="0">
+						</div>
+
+						<div class="col-md-4">
+							<label class="form-label">Giảm giá</label> <input
+								id="proDiscount" type="number" class="form-control" min="0">
+						</div>
+
+						<div class="col-md-4">
+							<label class="form-label">Số lượng</label> <input id="proQty"
+								type="number" class="form-control" min="0">
+						</div>
+
+						<div class="col-md-6">
+							<label class="form-label">Trạng thái</label> <select
+								id="proStatus" class="form-select">
+								<option value="1">Đang bán</option>
+								<option value="0">Ngừng bán</option>
+							</select>
+						</div>
+
+						<div class="col-md-6">
+							<label class="form-label">Hình ảnh</label> <input type="file"
+								id="proImage" class="form-control" accept="image/*"
+								onchange="preview(this,'proPreview')"> <img
+								id="proPreview" class="preview">
+						</div>
+
+						<div class="col-12">
+							<label class="form-label">Mô tả</label>
+							<textarea id="proDesc" class="form-control" rows="3"></textarea>
+						</div>
+
+					</div>
+
+				</div>
+
+				<div class="modal-footer">
+					<button class="btn btn-secondary" data-bs-dismiss="modal">
+						Đóng</button>
+
+					<button class="btn btn-primary" onclick="saveProduct()">
+						Lưu</button>
+				</div>
+
+			</div>
+		</div>
+	</div>
+
+
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script>
+
+let catModal = new bootstrap.Modal(document.getElementById("catModal"));
+let proModal = new bootstrap.Modal(document.getElementById("proModal"));
+
+let currentPage = 0;
+const size = 5;
+
+
+/* ================= MESSAGE ================= */
+
+function msg(id,text,type="success"){
+    $(id).html(`<div class="alert alert-${type} py-2">${text}</div>`);
+    setTimeout(()=>$(id).html(""),2500);
+}
+
+
+/* ================= CATEGORY ================= */
+
+function loadCategory(){
+
+    $.get("/api/category",function(res){
+
+        let data=res.body||res;
+        let html="";
+
+        if(!data.length){
+            html=`<tr><td colspan="4" class="empty">
+                    Chưa có Category
+                  </td></tr>`;
+        }
+
+        data.forEach(c=>{
+
+            html+=`
+            <tr>
+                <td>${c.categoryId}</td>
+
+                <td>
+                    ${c.icon ?
+                    `<img class="img"
+                     src="/uploads/${encodeURIComponent(c.icon)}">`
+                    :""}
+                </td>
+
+                <td>${c.categoryName}</td>
+
+                <td>
+                    <button class="btn btn-warning btn-sm"
+                            onclick="editCategory(${c.categoryId})">
+                        Sửa
+                    </button>
+
+                    <button class="btn btn-danger btn-sm"
+                            onclick="deleteCategory(${c.categoryId})">
+                        Xóa
+                    </button>
+                </td>
+            </tr>`;
+        });
+
+        $("#catBody").html(html);
+        loadDropdown();
+    });
+}
+
+
+function loadDropdown(){
+
+    $.get("/api/category",function(res){
+
+        let data=res.body||res;
+
+        let html=`<option value="">-- Chọn Category --</option>`;
+
+        data.forEach(c=>{
+            html+=`
+            <option value="${c.categoryId}">
+                ${c.categoryName}
+            </option>`;
+        });
+
+        $("#proCat").html(html);
+    });
+}
+
+
+function addCategory(){
+
+    $("#catTitle").text("Thêm Category");
+    $("#catId,#catName").val("");
+    $("#catIcon").val("");
+    $("#catPreview").hide();
+
+    catModal.show();
+}
+
+
+function editCategory(id){
+
+    $.post("/api/category/getCategory",{id:id},function(res){
+
+        let c=res.body||res;
+
+        $("#catTitle").text("Sửa Category");
+        $("#catId").val(c.categoryId);
+        $("#catName").val(c.categoryName);
+        $("#catIcon").val("");
+
+        if(c.icon){
+            $("#catPreview")
+                .attr("src","/uploads/"+encodeURIComponent(c.icon))
+                .show();
+        }else{
+            $("#catPreview").hide();
+        }
+
+        catModal.show();
+    });
+}
+
+
+function saveCategory(){
+
+    let id=$("#catId").val();
+    let name=$("#catName").val().trim();
+    let file=$("#catIcon")[0].files[0];
+
+    if(!name){
+        msg("#catMsg","Vui lòng nhập tên Category","danger");
+        return;
+    }
+
+    let fd=new FormData();
+
+    fd.append("categoryName",name);
+
+    if(file)
+        fd.append("icon",file);
+
+    let url=id
+        ?"/api/category/updateCategory"
+        :"/api/category/addCategory";
+
+    if(id)
+        fd.append("categoryId",id);
+
+    $.ajax({
+        url:url,
+        type:id?"PUT":"POST",
+        data:fd,
+        processData:false,
+        contentType:false,
+
+        success:function(res){
+
+            if(res.status===false){
+                msg("#catMsg",res.message,"danger");
+                return;
+            }
+
+            catModal.hide();
+            msg("#catMsg",id?"Đã cập nhật Category":"Đã thêm Category");
+
+            loadCategory();
+            loadProduct(currentPage);
+        },
+
+        error:function(){
+            msg("#catMsg","Không thể lưu Category","danger");
+        }
+    });
+}
+
+
+function deleteCategory(id){
+
+    if(!confirm("Xóa Category này?")) return;
+
+    $.ajax({
+        url:"/api/category/deleteCategory",
+        type:"DELETE",
+        data:{categoryId:id},
+
+        success:function(res){
+
+            if(res.status===false){
+                msg("#catMsg",res.message,"danger");
+                return;
+            }
+
+            msg("#catMsg","Đã xóa Category");
+            loadCategory();
+            loadProduct(currentPage);
+        }
+    });
+}
+
+
+/* ================= PRODUCT ================= */
+
+function loadProduct(page=0){
+
+    currentPage=page;
+
+    $.get("/api/product",{
+        keyword:$("#keyword").val().trim(),
+        page:page,
+        size:size
+    },function(res){
+
+        let p=res.body||res;
+        let data=p.content||[];
+        let html="";
+
+        if(!data.length){
+
+            html=`<tr>
+                    <td colspan="9" class="empty">
+                        Không có sản phẩm
+                    </td>
+                  </tr>`;
+        }
+
+        data.forEach(x=>{
+
+            let cat=x.category
+                ?x.category.categoryName
+                :"";
+
+            html+=`
+            <tr>
+
+                <td>${x.productId}</td>
+
+                <td>
+                    ${x.images?
+                    `<img class="img"
+                    src="/uploads/${encodeURIComponent(x.images)}">`
+                    :""}
+                </td>
+
+                <td><b>${x.productName}</b></td>
+
+                <td>${Number(x.unitPrice||0).toLocaleString("vi-VN")}</td>
+
+                <td>${x.discount||0}</td>
+
+                <td>${x.quantity||0}</td>
+
+                <td>${cat}</td>
+
+                <td>
+                    ${x.status==1
+                    ?`<span class="badge badge-sale">Đang bán</span>`
+                    :`<span class="badge bg-secondary">Ngừng bán</span>`}
+                </td>
+
+                <td>
+                    <button class="btn btn-warning btn-sm"
+                            onclick="editProduct(${x.productId})">
+                        Sửa
+                    </button>
+
+                    <button class="btn btn-danger btn-sm"
+                            onclick="deleteProduct(${x.productId})">
+                        Xóa
+                    </button>
+                </td>
+
+            </tr>`;
+        });
+
+        $("#proBody").html(html);
+        paging(p);
+
+    });
+}
+
+
+/* ================= PAGINATION ================= */
+
+function paging(p){
+
+    let total=p.totalPages||0;
+    let now=p.number||0;
+
+    if(total<=1){
+        $("#paging").html("");
+        return;
+    }
+
+    let html=`<ul class="pagination">`;
+
+    for(let i=0;i<total;i++){
+
+        html+=`
+        <li class="page-item ${i==now?"active":""}">
+            <a href="#"
+               class="page-link"
+               onclick="loadProduct(${i});return false">
+               ${i+1}
+            </a>
+        </li>`;
+    }
+
+    html+=`</ul>`;
+
+    $("#paging").html(html);
+}
+
+
+/* ================= ADD PRODUCT ================= */
+
+function addProduct(){
+
+    $("#proTitle").text("Thêm sản phẩm");
+
+    $("#proId,#proName,#proPrice,#proDiscount,#proQty,#proDesc").val("");
+
+    $("#proStatus").val("1");
+    $("#proImage").val("");
+    $("#proPreview").hide();
+
+    loadDropdown();
+
+    proModal.show();
+}
+
+
+/* ================= EDIT PRODUCT ================= */
+
+function editProduct(id){
+
+    $.post("/api/product/getProduct",{id:id},function(res){
+
+        let p=res.body||res;
+
+        $("#proTitle").text("Sửa sản phẩm");
+
+        $("#proId").val(p.productId);
+        $("#proName").val(p.productName);
+        $("#proPrice").val(p.unitPrice);
+        $("#proDiscount").val(p.discount);
+        $("#proQty").val(p.quantity);
+        $("#proDesc").val(p.description||"");
+        $("#proStatus").val(p.status);
+
+        loadDropdown();
+
+        setTimeout(()=>{
+            if(p.category)
+                $("#proCat").val(p.category.categoryId);
+        },200);
+
+        $("#proImage").val("");
+
+        if(p.images){
+
+            $("#proPreview")
+                .attr("src","/uploads/"+encodeURIComponent(p.images))
+                .show();
+
+        }else{
+            $("#proPreview").hide();
+        }
+
+        proModal.show();
+
+    });
+}
+
+
+/* ================= SAVE PRODUCT ================= */
+
+function saveProduct(){
+
+    let id=$("#proId").val();
+    let name=$("#proName").val().trim();
+    let cat=$("#proCat").val();
+
+    if(!name){
+        msg("#proMsg","Vui lòng nhập tên sản phẩm","danger");
+        return;
+    }
+
+    if(!cat){
+        msg("#proMsg","Vui lòng chọn Category","danger");
+        return;
+    }
+
+    let fd=new FormData();
+
+    fd.append("productName",name);
+    fd.append("categoryId",cat);
+    fd.append("unitPrice",$("#proPrice").val()||0);
+    fd.append("discount",$("#proDiscount").val()||0);
+    fd.append("quantity",$("#proQty").val()||0);
+    fd.append("status",$("#proStatus").val());
+    fd.append("description",$("#proDesc").val());
+
+    let file=$("#proImage")[0].files[0];
+
+    if(file)
+        fd.append("imageFile",file);
+
+    if(id)
+        fd.append("productId",id);
+
+    $.ajax({
+
+        url:id
+            ?"/api/product/updateProduct"
+            :"/api/product/addProduct",
+
+        type:id?"PUT":"POST",
+
+        data:fd,
+        processData:false,
+        contentType:false,
+
+        success:function(res){
+
+            if(res.status===false){
+                msg("#proMsg",res.message,"danger");
+                return;
+            }
+
+            proModal.hide();
+
+            msg("#proMsg",
+                id?"Đã cập nhật sản phẩm":"Đã thêm sản phẩm");
+
+            loadProduct(id?currentPage:0);
+        },
+
+        error:function(){
+            msg("#proMsg","Không thể lưu sản phẩm","danger");
+        }
+    });
+}
+
+
+/* ================= DELETE PRODUCT ================= */
+
+function deleteProduct(id){
+
+    if(!confirm("Xóa sản phẩm này?")) return;
+
+    $.ajax({
+
+        url:"/api/product/deleteProduct",
+        type:"DELETE",
+
+        data:{
+            productId:id
+        },
+
+        success:function(res){
+
+            if(res.status===false){
+                msg("#proMsg",res.message,"danger");
+                return;
+            }
+
+            msg("#proMsg","Đã xóa sản phẩm");
+            loadProduct(currentPage);
+        }
+    });
+}
+
+
+/* ================= IMAGE PREVIEW ================= */
+
+function preview(input,id){
+
+    if(!input.files[0]) return;
+
+    let reader=new FileReader();
+
+    reader.onload=e=>{
+        $("#"+id)
+            .attr("src",e.target.result)
+            .show();
+    };
+
+    reader.readAsDataURL(input.files[0]);
+}
+
+
+/* ================= ENTER ================= */
+
+$("#keyword").keypress(function(e){
+
+    if(e.which==13)
+        loadProduct(0);
+
+});
+
+
+/* ================= START ================= */
+
+$(function(){
+
+    loadCategory();
+    loadProduct(0);
+
+});
+
+</script>
+
+</body>
+</html>
