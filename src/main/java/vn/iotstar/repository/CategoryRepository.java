@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import vn.iotstar.entity.Category;
 
-@Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
 	List<Category> findByCategoryNameContaining(String name);
